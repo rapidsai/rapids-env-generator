@@ -1,0 +1,14 @@
+files:
+  docs:
+    output: none
+    includes:
+      - docs
+dependencies:
+  docs:
+    common:
+      - output_types: [conda]
+        packages:
+          - make
+          - numpydoc
+          - pydata-sphinx-theme
+          - sphinx
