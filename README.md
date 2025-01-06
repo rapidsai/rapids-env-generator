@@ -4,18 +4,6 @@
 
 When installed, it makes the `rapids-dependency-file-generator` CLI command available which is responsible for parsing a `dependencies.yaml` configuration file and generating the appropriate conda `environment.yaml` and `requirements.txt` dependency files.
 
-## Table of Contents
-
-- [Installation](#installation)
-- [Usage](#usage)
-- [`dependencies.yaml` Format](#dependenciesyaml-format)
-  - [`files` key](#files-key)
-  - [`channels` key](#channels-key)
-  - [`dependencies` key](#dependencies-key)
-- [How Dependency Lists Are Merged](#how-dependency-lists-are-merged)
-- [Additional CLI Notes](#additional-cli-notes)
-- [Examples](#examples)
-
 ## Installation
 
 `rapids-dependency-file-generator` is available on [PyPI](https://pypi.org/project/rapids-dependency-file-generator/). To install, run:
@@ -35,8 +23,6 @@ The `dependencies.yaml` file has the following characteristics:
 - it contains bifurcated lists of dependencies based on the dependency's purpose (i.e. build, runtime, test, etc.). The bifurcated dependency lists are merged according to the description in the [_How Dependency Lists Are Merged_](#how-dependency-lists-are-merged) section below.
 
 ## `dependencies.yaml` Format
-
-> The [Examples](#examples) section below has instructions on where example `dependency.yaml` files and their corresponding output can be viewed.
 
 The `dependencies.yaml` file has three relevant top-level keys: `files`, `channels`, and `dependencies`. These keys are described in detail below.
 
@@ -139,7 +125,7 @@ In the absence of a `channels` key, some sensible defaults for RAPIDS will be us
 
 The top-level `dependencies` key is where the bifurcated dependency lists should be specified.
 
-Underneath the `dependencies` key are sets of key-value pairs. For each pair, the key can be arbitarily named, but should match an item from the `includes` list of any `files` entry.
+Underneath the `dependencies` key are sets of key-value pairs. For each pair, the key can be arbitrarily named, but should match an item from the `includes` list of any `files` entry.
 
 The value of each key-value pair can have the following children keys:
 
@@ -350,16 +336,3 @@ If both `--output` and `--prepend-channel` are provided, the output format must 
 Prepending channels can be useful for adding local channels with packages to be tested in CI workflows.
 
 Running `rapids-dependency-file-generator -h` will show the most up-to-date CLI arguments.
-
-## Examples
-
-The [tests/examples](./tests/examples/) directory has example `dependencies.yaml` files along with their corresponding output files.
-
-To create new `example` tests do the following:
-
-- Create a new directory with a `dependencies.yaml` file in [tests/examples](tests/examples/)
-- Ensure the `output` directories (e.g. `conda_dir`, `requirements_dir`, etc.) are set to write to `output/actual`
-- Run `rapids-dependency-file-generator --config tests/examples/<new_folder_name>/dependencies.yaml` to generate the initial output files
-- Manually inspect the generated files for correctness
-- Copy the contents of `output/actual` to `output/expected`, so it will be committed to the repository and used as a baseline for future changes
-- Add the new folder name to [test_examples.py](./tests/test_examples.py)

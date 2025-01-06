@@ -25,3 +25,16 @@ If a change type not listed in the table above is used, it will not trigger a re
 The source of truth for these rules is [semantic-release/commit-analyzer](https://github.com/semantic-release/commit-analyzer). The `angular` preset is used by default, which is documented [here](https://github.com/conventional-changelog/conventional-changelog/tree/master/packages/conventional-changelog-angular).
 
 [semantic-release]: https://github.com/semantic-release/semantic-release
+
+## Examples
+
+The [tests/examples](./tests/examples/) directory has example `dependencies.yaml` files along with their corresponding output files.
+
+To create new `example` tests do the following:
+
+- Create a new directory with a `dependencies.yaml` file in [tests/examples](tests/examples/)
+- Ensure the `output` directories (e.g. `conda_dir`, `requirements_dir`, etc.) are set to write to `output/actual`
+- Run `rapids-dependency-file-generator --config tests/examples/<new_folder_name>/dependencies.yaml` to generate the initial output files
+- Manually inspect the generated files for correctness
+- Copy the contents of `output/actual` to `output/expected`, so it will be committed to the repository and used as a baseline for future changes
+- Add the new folder name to [test_examples.py](./tests/test_examples.py)
