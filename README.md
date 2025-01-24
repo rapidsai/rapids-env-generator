@@ -42,8 +42,8 @@ files:
   all: # used as the prefix for the generated dependency file names for conda or requirements files (has no effect on pyproject.toml files)
     output: [conda, requirements] # which dependency file types to generate. required, can be "conda", "requirements", "pyproject", "none" or a list of non-"none" values
     conda_dir: conda/environments # where to put conda environment.yaml files. optional, defaults to "conda/environments"
-    requirements_dir: python/cudf # where to put requirements.txt files. optional, but recommended. defaults to "python"
-    pyproject_dir: python/cudf # where to put pyproject.toml files. optional, but recommended. defaults to "python"
+    requirements_dir: python/cudf # where to put requirements.txt files. optional, but recommended. Used for devcontainers. defaults to "python"
+    pyproject_dir: python/cudf # where to put pyproject.toml files. optional, but recommended. Used for wheel builds. defaults to "python"
     matrix: # (optional) contains an arbitrary set of key/value pairs to determine which dependency files that should be generated. These values are included in the output filename.
       cuda: ["11.5", "11.6"] # which CUDA version variant files to generate.
       arch: [x86_64] # which architecture version variant files to generate. This value should be the result of running the `arch` command on a given machine.
@@ -85,6 +85,8 @@ files:
 
 When `output: none` is used, the `conda_dir`, `requirements_dir` and `matrix` keys can be omitted. The use case for `output: none` is described in the [_Additional CLI Notes_](#additional-cli-notes) section below.
 
+If more than one `files` key specifies the same output and *_dir, their contents are merged. This is how different sections are written to a given output file.
+
 #### `extras`
 
 A given file may include an `extras` entry that may be used to provide inputs specific to a particular file type
@@ -95,8 +97,6 @@ Here is an example:
 files:
   build:
     output: pyproject
-    includes: # a list of keys from the `dependencies` section which should be included in the generated files
-      - build
     extras:
       table: table_name
       key: key_name
@@ -104,8 +104,8 @@ files:
 
 Currently the supported extras by file type are:
 - pyproject.toml
-  - table: The table in pyproject.toml where the dependencies should be written. Acceptable values are "build-system", "project", and "project.optional-dependencies".
-  - key: The key corresponding to the dependency list in `table`. This may only be provided for the "project.optional-dependencies" table since the key name is fixed for "build-system" ("requires") and "project" ("dependencies"). Note that this implicitly prohibits including optional dependencies via an inline table under the "project" table.
+  - table: The table in pyproject.toml where the dependencies should be written. Acceptable values are "build-system", "project", "project.optional-dependencies", and "tool.rapids-build-backend"
+  - key: The key corresponding to the dependency list in `table`. This may only be provided for the "project.optional-dependencies" or "tool.rapids-build-backend" table since the key name is fixed for "build-system" ("requires") and "project" ("dependencies"). Note that this implicitly prohibits including optional dependencies via an inline table under the "project" table.
 
 ### `channels` Key
 
@@ -208,6 +208,40 @@ dependencies:
         packages:
           - pytest
 ```
+
+## Naming conventions
+
+With non-trivial collections of files and dependencies, names can look very related and become hard to distinguish. Some general guidelines that will help keep things more understandable:
+
+### Patterns for [RAPIDS build backend](https://github.com/rapidsai/rapids-build-backend)
+
+RBB builds generally include at least two sections:
+
+```
+files:
+  # This dependency brings in RBB
+  py_build_<something>:
+    output: pyproject
+    extras:
+      table: build-system  # This is the thing to match with the py_build_* name
+    includes:
+      - <rapids_build_skbuild>
+  # This dependency expresses the build-time dependencies for your recipe (what might otherwise go in [build-system] when not using RBB)
+  py_rapids_build_<something>:
+    output: pyproject
+    extras:
+      table: tool.rapids-build-backend  # This is the thing to match with the py_rapids_build_* name
+      key: requires
+    includes:
+      - <normal_project_build_time_deps>
+```
+
+### Patterns for dependencies
+
+To help distinguish dependency specifications from file specifications, it is recommended to prefix dependency entries
+with `dep_<type>_<name>`, where type is one of `build`, `run`, or `test`. This is functionally superfluous, as the `extras.table`
+value will ultimately determine where the dependency entries will go, but following the convention will make your dependencies.yaml
+file easier to follow.
 
 ## How Dependency Lists Are Merged
 
